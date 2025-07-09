@@ -1,6 +1,6 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import { Link } from 'react-router-dom';
-import { DollarSign, ShieldCheck, CreditCard, Activity, TrendingUp, Calculator, AlertCircle, CheckCircle, Lock, Crown } from 'lucide-react';
+import { DollarSign, ShieldCheck, CreditCard, Activity, TrendingUp, Calculator, AlertCircle, CheckCircle, Lock, Crown, Download } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from './ui/card';
 import { Button } from './ui/button';
 import { Input } from './ui/input';
@@ -10,9 +10,12 @@ import { useAuth } from '../contexts/AuthContext';
 import finHealthImage from '../assets/finhealth_cost_prediction.png';
 import bnplImage from '../assets/finhealth_bnpl.png';
 import { predictHealthcareCosts, recommendInsurance, calculateBNPL, getRiskAssessment } from '../utils/mockAI';
+// import jsPDF from 'jspdf';
+// import html2canvas from 'html2canvas';
 
 const FinHealthAI = () => {
-  const { currentUser, userProfile } = useAuth();
+  const { currentUser, userProfile, hasPremiumAccess, hasAdvancedAccess, savePrediction } = useAuth();
+  const resultsRef = useRef(null);
   const [formData, setFormData] = useState({
     age: '',
     preExistingConditions: '',
@@ -51,15 +54,87 @@ const FinHealthAI = () => {
     const riskAssessment = getRiskAssessment(formData, predictedCost);
     const bnplOptions = calculateBNPL(predictedCost, selectedBNPLMonths);
     
-    setResults({
+    const results = {
       predictedCost,
       insuranceRecommendations,
       riskAssessment,
       bnplOptions,
-      userPlan: userProfile?.plan || 'free'
-    });
+      userPlan: userProfile?.plan || 'starter'
+    };
+    
+    setResults(results);
+    
+    // Save prediction to database if user is logged in
+    if (currentUser) {
+      try {
+        await savePrediction({
+          formData,
+          results,
+          timestamp: new Date().toISOString(),
+          type: userProfile?.plan === 'starter' || !userProfile?.plan ? 'basic' : 
+                userProfile?.plan === 'plus' ? 'plus' : 'detailed'
+        });
+      } catch (error) {
+        console.error('Error saving prediction:', error);
+      }
+    }
     
     setLoading(false);
+  };
+
+  const downloadPDF = async () => {
+    // Temporarily disabled - PDF functionality will be added later
+    alert('PDF download feature coming soon!');
+    return;
+    
+    /*
+    if (!resultsRef.current || !hasPremiumAccess()) {
+      return;
+    }
+
+    try {
+      const canvas = await html2canvas(resultsRef.current, {
+        scale: 2,
+        useCORS: true,
+        allowTaint: true,
+        backgroundColor: '#ffffff'
+      });
+
+      const imgData = canvas.toDataURL('image/png');
+      const pdf = new jsPDF('p', 'mm', 'a4');
+      
+      const imgWidth = 210;
+      const pageHeight = 295;
+      const imgHeight = (canvas.height * imgWidth) / canvas.width;
+      let heightLeft = imgHeight;
+      let position = 0;
+
+      // Add title page
+      pdf.setFontSize(20);
+      pdf.text('Healyz FinHealth AI Report', 20, 30);
+      pdf.setFontSize(12);
+      pdf.text(`Generated on: ${new Date().toLocaleDateString()}`, 20, 40);
+      pdf.text(`User: ${currentUser?.email || 'N/A'}`, 20, 50);
+      pdf.text(`Plan: ${userProfile?.plan || 'N/A'}`, 20, 60);
+
+      // Add results
+      pdf.addPage();
+      pdf.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight);
+      heightLeft -= pageHeight;
+
+      while (heightLeft >= 0) {
+        position = heightLeft - imgHeight;
+        pdf.addPage();
+        pdf.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight);
+        heightLeft -= pageHeight;
+      }
+
+      pdf.save(`healyz-finhealth-report-${new Date().toISOString().split('T')[0]}.pdf`);
+    } catch (error) {
+      console.error('Error generating PDF:', error);
+      alert('Error generating PDF. Please try again.');
+    }
+    */
   };
 
   const renderBasicResults = () => (
@@ -90,15 +165,199 @@ const FinHealthAI = () => {
               🔓 Unlock Detailed Predictions & Insurance Suggestions
             </h3>
             <p className="text-gray-600 mb-4">
-              Get comprehensive cost breakdown, personalized insurance recommendations, and BNPL options with Premium Plan
+              Get comprehensive cost breakdown, personalized insurance recommendations, and BNPL options with Plus Plan or higher
             </p>
             <div className="flex items-center justify-center space-x-2 mb-4">
-              <span className="text-2xl font-bold text-primary">$19.99</span>
+              <span className="text-2xl font-bold text-primary">$18.99</span>
               <span className="text-gray-600">/month</span>
             </div>
             <Link to="/pricing">
               <Button className="bg-primary hover:bg-primary/90">
-                Upgrade Now
+                Upgrade to Plus
+              </Button>
+            </Link>
+          </div>
+        </CardContent>
+      </Card>
+    </div>
+  );
+
+  const renderPlusResults = () => (
+    <div className="space-y-6">
+      {/* Detailed Cost Breakdown */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center space-x-2">
+            <Calculator className="w-5 h-5 text-primary" />
+            <span>Detailed Cost Prediction</span>
+            <Crown className="w-4 h-4 text-yellow-500" />
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div>
+              <h4 className="font-semibold text-gray-900 mb-3">Annual Cost Breakdown</h4>
+              <div className="space-y-2">
+                <div className="flex justify-between">
+                  <span className="text-gray-600">Routine Care</span>
+                  <span className="font-medium">${Math.floor(results.predictedCost * 0.3).toLocaleString()}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-gray-600">Medications</span>
+                  <span className="font-medium">${Math.floor(results.predictedCost * 0.25).toLocaleString()}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-gray-600">Specialist Visits</span>
+                  <span className="font-medium">${Math.floor(results.predictedCost * 0.2).toLocaleString()}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-gray-600">Emergency/Urgent Care</span>
+                  <span className="font-medium">${Math.floor(results.predictedCost * 0.15).toLocaleString()}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-gray-600">Preventive Care</span>
+                  <span className="font-medium">${Math.floor(results.predictedCost * 0.1).toLocaleString()}</span>
+                </div>
+                <div className="border-t pt-2 flex justify-between font-bold">
+                  <span>Total Estimated Cost</span>
+                  <span className="text-primary">${results.predictedCost.toLocaleString()}</span>
+                </div>
+              </div>
+            </div>
+            
+            <div>
+              <h4 className="font-semibold text-gray-900 mb-3">Basic Risk Assessment</h4>
+              <div className="space-y-3">
+                <div className={`p-3 rounded-lg ${
+                  results.riskAssessment.level === 'Low' ? 'bg-green-50 border border-green-200' :
+                  results.riskAssessment.level === 'Medium' ? 'bg-yellow-50 border border-yellow-200' :
+                  'bg-red-50 border border-red-200'
+                }`}>
+                  <div className="flex items-center space-x-2 mb-2">
+                    <CheckCircle className={`w-5 h-5 ${
+                      results.riskAssessment.level === 'Low' ? 'text-green-600' :
+                      results.riskAssessment.level === 'Medium' ? 'text-yellow-600' :
+                      'text-red-600'
+                    }`} />
+                    <span className="font-medium">Risk Level: {results.riskAssessment.level}</span>
+                  </div>
+                  <p className="text-sm text-gray-600">{results.riskAssessment.description}</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Insurance Recommendations */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center space-x-2">
+            <ShieldCheck className="w-5 h-5 text-primary" />
+            <span>Insurance Recommendations</span>
+            <Crown className="w-4 h-4 text-yellow-500" />
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            {results.insuranceRecommendations.map((plan, index) => (
+              <div key={index} className={`p-4 rounded-lg border-2 ${
+                plan.recommended ? 'border-primary bg-primary/5' : 'border-gray-200'
+              }`}>
+                <div className="text-center mb-3">
+                  <h4 className="font-bold text-lg">{plan.name}</h4>
+                  <p className="text-2xl font-bold text-primary">${plan.monthlyPremium}</p>
+                  <p className="text-sm text-gray-600">per month</p>
+                </div>
+                
+                <div className="space-y-2 mb-4">
+                  <div className="flex justify-between text-sm">
+                    <span>Deductible</span>
+                    <span className="font-medium">${plan.deductible.toLocaleString()}</span>
+                  </div>
+                  <div className="flex justify-between text-sm">
+                    <span>Coverage</span>
+                    <span className="font-medium">{plan.coverage}%</span>
+                  </div>
+                </div>
+                
+                {plan.recommended && (
+                  <div className="bg-primary text-white text-xs px-2 py-1 rounded text-center">
+                    Recommended for you
+                  </div>
+                )}
+              </div>
+            ))}
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* BNPL Options */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center space-x-2">
+            <CreditCard className="w-5 h-5 text-primary" />
+            <span>Buy Now, Pay Later Options</span>
+            <Crown className="w-4 h-4 text-yellow-500" />
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <div>
+              <img 
+                src={bnplImage} 
+                alt="BNPL for Healthcare" 
+                className="w-full h-auto rounded-lg shadow-lg"
+              />
+            </div>
+            
+            <div>
+              <div className="space-y-4">
+                <div className="p-4 bg-gray-50 rounded-lg">
+                  <h4 className="font-semibold text-gray-900 mb-3">Payment Schedule</h4>
+                  <div className="space-y-2">
+                    <div className="flex justify-between">
+                      <span>Total Amount</span>
+                      <span className="font-medium">${results.predictedCost.toLocaleString()}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span>Monthly Payment (6 months)</span>
+                      <span className="font-medium text-primary">${Math.floor(results.predictedCost / 6).toLocaleString()}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span>Interest Rate</span>
+                      <span className="font-medium">2.9%</span>
+                    </div>
+                  </div>
+                </div>
+                
+                <Button className="w-full">
+                  Apply for BNPL Plan
+                </Button>
+              </div>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Upgrade to Premium Prompt */}
+      <Card className="border-orange-200 bg-orange-50">
+        <CardContent className="p-6">
+          <div className="text-center">
+            <Crown className="w-12 h-12 text-orange-500 mx-auto mb-4" />
+            <h3 className="text-xl font-bold text-gray-900 mb-2">
+              🚀 Unlock Advanced Features with Premium
+            </h3>
+            <p className="text-gray-600 mb-4">
+              Get personalized AI nutrition, wearable integration, advanced dashboard, and 24/7 support
+            </p>
+            <div className="flex items-center justify-center space-x-2 mb-4">
+              <span className="text-2xl font-bold text-orange-500">$34.99</span>
+              <span className="text-gray-600">/month</span>
+            </div>
+            <Link to="/pricing">
+              <Button className="bg-orange-500 hover:bg-orange-600 text-white">
+                Upgrade to Premium
               </Button>
             </Link>
           </div>
@@ -451,11 +710,30 @@ const FinHealthAI = () => {
             <div className="text-center mb-12">
               <h2 className="text-3xl font-bold text-gray-900 mb-4">Your Healthcare Financial Insights</h2>
               <p className="text-lg text-gray-600">
-                {results.userPlan === 'free' ? 'Basic prediction results' : 'Comprehensive analysis and recommendations'}
+                {userProfile?.plan === 'starter' || !userProfile?.plan ? 'Basic prediction results' : 
+                 userProfile?.plan === 'plus' ? 'Enhanced analysis with insurance recommendations' :
+                 'Comprehensive analysis and recommendations'}
               </p>
+              
+              {/* PDF Download Button - Only for Premium+ users */}
+              {hasPremiumAccess() && (
+                <div className="mt-6">
+                  <Button 
+                    onClick={downloadPDF}
+                    className="bg-primary hover:bg-primary/90 text-white"
+                  >
+                    <Download className="w-4 h-4 mr-2" />
+                    Download PDF Report
+                  </Button>
+                </div>
+              )}
             </div>
             
-            {results.userPlan === 'free' ? renderBasicResults() : renderDetailedResults()}
+            <div ref={resultsRef}>
+              {userProfile?.plan === 'starter' || !userProfile?.plan ? renderBasicResults() : 
+               userProfile?.plan === 'plus' ? renderPlusResults() : 
+               renderDetailedResults()}
+            </div>
           </div>
         </section>
       )}

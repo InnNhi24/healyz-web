@@ -258,6 +258,89 @@ const Home = () => {
         </div>
       </section>
 
+      {/* App Download Section */}
+      <section className="py-20 bg-card">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center mb-16">
+            <h2 className="text-3xl font-bold text-gray-900 mb-4">Get the Healyz App</h2>
+            <p className="text-lg text-gray-600 max-w-2xl mx-auto">
+              Take your healthcare financial planning on the go with our mobile app. Available for Android devices.
+            </p>
+          </div>
+
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
+            <div>
+              <h3 className="text-2xl font-bold text-gray-900 mb-6">Why Download the App?</h3>
+              <div className="space-y-4">
+                <div className="flex items-start space-x-3">
+                  <div className="w-6 h-6 bg-primary/10 rounded-full flex items-center justify-center mt-1">
+                    <Smartphone className="w-3 h-3 text-primary" />
+                  </div>
+                  <div>
+                    <h4 className="font-semibold text-gray-900">On-the-Go Access</h4>
+                    <p className="text-gray-600">Access your healthcare predictions and financial planning anywhere, anytime.</p>
+                  </div>
+                </div>
+                <div className="flex items-start space-x-3">
+                  <div className="w-6 h-6 bg-secondary/10 rounded-full flex items-center justify-center mt-1">
+                    <Brain className="w-3 h-3 text-secondary" />
+                  </div>
+                  <div>
+                    <h4 className="font-semibold text-gray-900">Real-time Notifications</h4>
+                    <p className="text-gray-600">Get instant alerts about insurance opportunities and cost-saving tips.</p>
+                  </div>
+                </div>
+                <div className="flex items-start space-x-3">
+                  <div className="w-6 h-6 bg-accent/10 rounded-full flex items-center justify-center mt-1">
+                    <Shield className="w-3 h-3 text-accent" />
+                  </div>
+                  <div>
+                    <h4 className="font-semibold text-gray-900">Secure & Private</h4>
+                    <p className="text-gray-600">Your health and financial data is encrypted and protected with enterprise-grade security.</p>
+                  </div>
+                </div>
+              </div>
+
+              <div className="mt-8 space-y-4">
+                <div className="flex items-center space-x-4">
+                  <a 
+                    href="/downloads/healyz-app.apk" 
+                    className="inline-flex items-center px-6 py-3 bg-primary text-white rounded-lg hover:bg-primary/90 transition-colors"
+                    download
+                  >
+                    <Smartphone className="w-5 h-5 mr-2" />
+                    Download for Android
+                  </a>
+                  <span className="text-sm text-gray-500">v1.0.0 • 15MB</span>
+                </div>
+                <p className="text-sm text-gray-500">
+                  📱 iOS version coming soon • 🔒 Requires Android 8.0 or higher
+                </p>
+              </div>
+            </div>
+
+            <div className="text-center">
+              <div className="bg-gradient-to-br from-primary/10 to-secondary/10 rounded-2xl p-8">
+                <div className="w-32 h-32 bg-white rounded-2xl shadow-lg mx-auto mb-6 flex items-center justify-center">
+                  <div className="text-4xl font-bold text-primary">Hz</div>
+                </div>
+                <h4 className="text-xl font-bold text-gray-900 mb-2">Healyz Mobile</h4>
+                <p className="text-gray-600 mb-4">Healthcare Finance AI in Your Pocket</p>
+                <div className="flex justify-center space-x-1 mb-4">
+                  {[...Array(5)].map((_, i) => (
+                    <Star key={i} className="w-4 h-4 text-yellow-400 fill-current" />
+                  ))}
+                  <span className="text-sm text-gray-600 ml-2">4.8 (1,200+ reviews)</span>
+                </div>
+                <div className="text-sm text-gray-500">
+                  Join 50,000+ users saving on healthcare costs
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
       {/* CTA Section */}
       <section className="py-20 bg-primary">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">

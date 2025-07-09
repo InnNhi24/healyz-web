@@ -1,153 +1,252 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
-import { 
-  createUserWithEmailAndPassword, 
-  signInWithEmailAndPassword, 
-  signOut, 
-  onAuthStateChanged,
-  GoogleAuthProvider,
-  signInWithPopup
-} from 'firebase/auth';
-import { doc, setDoc, getDoc } from 'firebase/firestore';
-import { auth, db } from '../config/firebase';
+import { supabase, TABLES, PLAN_TYPES } from '../config/supabase';
 
 const AuthContext = createContext();
 
-export function useAuth() {
-  return useContext(AuthContext);
-}
+export const useAuth = () => {
+  const context = useContext(AuthContext);
+  if (!context) {
+    throw new Error('useAuth must be used within an AuthProvider');
+  }
+  return context;
+};
 
-export function AuthProvider({ children }) {
+export const AuthProvider = ({ children }) => {
   const [currentUser, setCurrentUser] = useState(null);
   const [userProfile, setUserProfile] = useState(null);
   const [loading, setLoading] = useState(true);
 
-  // Create user profile in Firestore
-  const createUserProfile = async (user, additionalData = {}) => {
-    if (!user) return;
-    
-    const userRef = doc(db, 'users', user.uid);
-    const userSnap = await getDoc(userRef);
-    
-    if (!userSnap.exists()) {
-      const { displayName, email } = user;
-      const createdAt = new Date();
-      
-      try {
-        await setDoc(userRef, {
-          displayName,
-          email,
-          plan: 'free', // Default plan
-          createdAt,
-          ...additionalData
-        });
-      } catch (error) {
-        console.log('Error creating user profile:', error.message);
+  // Sign up function
+  const signUp = async (email, password, userData = {}) => {
+    try {
+      const { data, error } = await supabase.auth.signUp({
+        email,
+        password,
+        options: {
+          data: userData
+        }
+      });
+
+      if (error) throw error;
+
+      // Create user profile in database
+      if (data.user) {
+        const { error: profileError } = await supabase
+          .from(TABLES.USERS)
+          .insert([
+            {
+              id: data.user.id,
+              email: data.user.email,
+              plan: PLAN_TYPES.STARTER,
+              created_at: new Date().toISOString(),
+              ...userData
+            }
+          ]);
+
+        if (profileError) {
+          console.error('Error creating user profile:', profileError);
+        }
       }
+
+      return { data, error: null };
+    } catch (error) {
+      console.error('Sign up error:', error);
+      return { data: null, error };
     }
-    
-    return getUserProfile(user.uid);
   };
 
-  // Get user profile from Firestore
-  const getUserProfile = async (uid) => {
+  // Sign in function
+  const signIn = async (email, password) => {
     try {
-      const userRef = doc(db, 'users', uid);
-      const userSnap = await getDoc(userRef);
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email,
+        password
+      });
+
+      if (error) throw error;
+      return { data, error: null };
+    } catch (error) {
+      console.error('Sign in error:', error);
+      return { data: null, error };
+    }
+  };
+
+  // Sign out function
+  const signOut = async () => {
+    try {
+      const { error } = await supabase.auth.signOut();
+      if (error) throw error;
       
-      if (userSnap.exists()) {
-        return userSnap.data();
-      }
+      setCurrentUser(null);
+      setUserProfile(null);
+      return { error: null };
     } catch (error) {
-      console.log('Error getting user profile:', error.message);
-    }
-    return null;
-  };
-
-  // Update user plan
-  const updateUserPlan = async (uid, plan) => {
-    try {
-      const userRef = doc(db, 'users', uid);
-      await setDoc(userRef, { plan }, { merge: true });
-      
-      // Update local state
-      setUserProfile(prev => ({ ...prev, plan }));
-      return true;
-    } catch (error) {
-      console.log('Error updating user plan:', error.message);
-      return false;
+      console.error('Sign out error:', error);
+      return { error };
     }
   };
 
-  // Sign up with email and password
-  const signup = async (email, password, displayName) => {
-    try {
-      const result = await createUserWithEmailAndPassword(auth, email, password);
-      await createUserProfile(result.user, { displayName });
-      return result;
-    } catch (error) {
-      throw error;
-    }
-  };
-
-  // Sign in with email and password
-  const login = async (email, password) => {
-    try {
-      const result = await signInWithEmailAndPassword(auth, email, password);
-      return result;
-    } catch (error) {
-      throw error;
-    }
-  };
-
-  // Sign in with Google
+  // Google sign in function
   const signInWithGoogle = async () => {
     try {
-      const provider = new GoogleAuthProvider();
-      const result = await signInWithPopup(auth, provider);
-      await createUserProfile(result.user);
-      return result;
+      const { data, error } = await supabase.auth.signInWithOAuth({
+        provider: 'google',
+        options: {
+          redirectTo: `${window.location.origin}/`
+        }
+      });
+
+      if (error) throw error;
+      return { data, error: null };
     } catch (error) {
-      throw error;
+      console.error('Google sign in error:', error);
+      return { data: null, error };
     }
   };
 
-  // Sign out
-  const logout = () => {
-    return signOut(auth);
+  // Update user profile
+  const updateUserProfile = async (updates) => {
+    try {
+      if (!currentUser) throw new Error('No user logged in');
+
+      const { data, error } = await supabase
+        .from(TABLES.USERS)
+        .update(updates)
+        .eq('id', currentUser.id)
+        .select()
+        .single();
+
+      if (error) throw error;
+
+      setUserProfile(data);
+      return { data, error: null };
+    } catch (error) {
+      console.error('Update profile error:', error);
+      return { data: null, error };
+    }
   };
 
-  useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, async (user) => {
-      setCurrentUser(user);
-      
-      if (user) {
-        const profile = await getUserProfile(user.uid);
-        setUserProfile(profile);
-      } else {
-        setUserProfile(null);
-      }
-      
-      setLoading(false);
-    });
+  // Get user profile
+  const getUserProfile = async (userId) => {
+    try {
+      const { data, error } = await supabase
+        .from(TABLES.USERS)
+        .select('*')
+        .eq('id', userId)
+        .single();
 
-    return unsubscribe;
+      if (error) throw error;
+      return data;
+    } catch (error) {
+      console.error('Get user profile error:', error);
+      return null;
+    }
+  };
+
+  // Save prediction
+  const savePrediction = async (predictionData) => {
+    try {
+      if (!currentUser) throw new Error('No user logged in');
+
+      const { data, error } = await supabase
+        .from(TABLES.PREDICTIONS)
+        .insert([
+          {
+            user_id: currentUser.id,
+            ...predictionData,
+            created_at: new Date().toISOString()
+          }
+        ])
+        .select()
+        .single();
+
+      if (error) throw error;
+      return { data, error: null };
+    } catch (error) {
+      console.error('Save prediction error:', error);
+      return { data: null, error };
+    }
+  };
+
+  // Get user predictions
+  const getUserPredictions = async () => {
+    try {
+      if (!currentUser) throw new Error('No user logged in');
+
+      const { data, error } = await supabase
+        .from(TABLES.PREDICTIONS)
+        .select('*')
+        .eq('user_id', currentUser.id)
+        .order('created_at', { ascending: false });
+
+      if (error) throw error;
+      return { data, error: null };
+    } catch (error) {
+      console.error('Get predictions error:', error);
+      return { data: null, error };
+    }
+  };
+
+  // Check if user has premium access
+  const hasPremiumAccess = () => {
+    return userProfile?.plan === PLAN_TYPES.PLUS || 
+           userProfile?.plan === PLAN_TYPES.PREMIUM || 
+           userProfile?.plan === PLAN_TYPES.ENTERPRISE;
+  };
+
+  // Check if user has enterprise access
+  const hasEnterpriseAccess = () => {
+    return userProfile?.plan === PLAN_TYPES.ENTERPRISE;
+  };
+
+  // Check if user has advanced features (Premium and Enterprise)
+  const hasAdvancedAccess = () => {
+    return userProfile?.plan === PLAN_TYPES.PREMIUM || 
+           userProfile?.plan === PLAN_TYPES.ENTERPRISE;
+  };
+
+  // Listen for auth state changes
+  useEffect(() => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(
+      async (event, session) => {
+        if (session?.user) {
+          setCurrentUser(session.user);
+          
+          // Get user profile
+          const profile = await getUserProfile(session.user.id);
+          setUserProfile(profile);
+        } else {
+          setCurrentUser(null);
+          setUserProfile(null);
+        }
+        setLoading(false);
+      }
+    );
+
+    return () => subscription.unsubscribe();
   }, []);
 
   const value = {
     currentUser,
     userProfile,
-    signup,
-    login,
-    logout,
+    loading,
+    signUp,
+    signIn,
+    signOut,
     signInWithGoogle,
-    updateUserPlan,
-    createUserProfile
+    updateUserProfile,
+    getUserProfile,
+    savePrediction,
+    getUserPredictions,
+    hasPremiumAccess,
+    hasEnterpriseAccess,
+    hasAdvancedAccess
   };
 
   return (
     <AuthContext.Provider value={value}>
-      {!loading && children}
+      {children}
     </AuthContext.Provider>
   );
-}
+};
 

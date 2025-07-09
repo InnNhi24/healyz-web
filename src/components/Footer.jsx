@@ -8,14 +8,14 @@ const Footer = () => {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
         <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
           {/* Company Info */}
-          <div className="col-span-1 md:col-span-2">
+          <div className="col-span-1 md:col-span-1">
             <div className="flex items-center space-x-2 mb-4">
               <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center">
                 <Heart className="w-5 h-5 text-white" />
               </div>
               <span className="text-xl font-bold">Healyz</span>
             </div>
-            <p className="text-gray-300 mb-4 max-w-md">
+            <p className="text-gray-300 mb-4">
               Optimize healthcare finance and nutrition with AI. Healyz offers a comprehensive solution 
               to help you intelligently manage healthcare costs and live healthier.
             </p>
@@ -44,6 +44,17 @@ const Footer = () => {
             </ul>
           </div>
 
+          {/* Legal */}
+          <div>
+            <h3 className="text-lg font-semibold mb-4">Legal</h3>
+            <ul className="space-y-2">
+              <li><Link to="/terms" className="text-gray-300 hover:text-white transition-colors">Terms of Service</Link></li>
+              <li><Link to="/privacy" className="text-gray-300 hover:text-white transition-colors">Privacy Policy</Link></li>
+              <li><a href="mailto:legal@healyz.com" className="text-gray-300 hover:text-white transition-colors">Legal Inquiries</a></li>
+              <li><a href="mailto:privacy@healyz.com" className="text-gray-300 hover:text-white transition-colors">Privacy Questions</a></li>
+            </ul>
+          </div>
+
           {/* Contact Info */}
           <div>
             <h3 className="text-lg font-semibold mb-4">Contact Info</h3>
@@ -58,16 +69,23 @@ const Footer = () => {
               </li>
               <li className="flex items-center space-x-2">
                 <MapPin className="w-4 h-4 text-gray-400" />
-                <span className="text-gray-300">Sydney, New South Wales, Australia</span>
+                <span className="text-gray-300">Sydney, NSW, Australia</span>
               </li>
             </ul>
           </div>
         </div>
 
-        <div className="border-t border-gray-800 mt-8 pt-8 text-center">
-          <p className="text-gray-400">
-            © 2024 Healyz. All rights reserved.
-          </p>
+        <div className="border-t border-gray-800 mt-8 pt-8">
+          <div className="flex flex-col md:flex-row justify-between items-center">
+            <p className="text-gray-400 mb-4 md:mb-0">
+              © 2024 Healyz. All rights reserved.
+            </p>
+            <div className="flex space-x-6">
+              <Link to="/terms" className="text-gray-400 hover:text-white transition-colors text-sm">Terms</Link>
+              <Link to="/privacy" className="text-gray-400 hover:text-white transition-colors text-sm">Privacy</Link>
+              <Link to="/contact" className="text-gray-400 hover:text-white transition-colors text-sm">Support</Link>
+            </div>
+          </div>
         </div>
       </div>
     </footer>

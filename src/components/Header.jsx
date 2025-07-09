@@ -16,6 +16,7 @@ const Header = () => {
     { name: 'Kitchen AI', href: '/kitchen-ai' },
     { name: 'Pricing', href: '/pricing' },
     { name: 'Contact', href: '/contact' },
+    ...(currentUser ? [{ name: 'History', href: '/history' }] : [])
   ];
 
   const handleLogout = async () => {

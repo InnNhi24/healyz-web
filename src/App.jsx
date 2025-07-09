@@ -10,9 +10,13 @@ import FinHealthAI from './components/FinHealthAI';
 import KitchenAI from './components/KitchenAI';
 import Pricing from './components/Pricing';
 import Contact from './components/Contact';
+import History from './components/History';
+import Terms from './components/Terms';
+import Privacy from './components/Privacy';
 import Login from './components/Auth/Login';
 import Register from './components/Auth/Register';
 import MyAccount from './components/Account/MyAccount';
+import UpgradePage from './components/Upgrade/UpgradePage';
 
 function App() {
   return (
@@ -28,11 +32,14 @@ function App() {
               <Route path="/kitchen-ai" element={<KitchenAI />} />
               <Route path="/pricing" element={<Pricing />} />
               <Route path="/contact" element={<Contact />} />
+              <Route path="/history" element={<History />} />
+              <Route path="/terms" element={<Terms />} />
+              <Route path="/privacy" element={<Privacy />} />
               <Route path="/login" element={<Login />} />
               <Route path="/register" element={<Register />} />
-              <Route path="/account" element={<MyAccount />} />
-            </Routes>
-          </main>
+              <Route path="/my-account" element={<MyAccount />} />
+              <Route path="/upgrade" element={<UpgradePage />} />
+            </Routes>        </main>
           <Footer />
         </div>
       </Router>
