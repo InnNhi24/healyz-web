@@ -43,13 +43,15 @@ const Register = () => {
     try {
       setError('');
       setLoading(true);
-      await signup(formData.email, formData.password, formData.displayName);
-      navigate('/');
+      const { error: signupError } = await signup(formData.email, formData.password, formData.displayName);
+      if (signupError) {
+        throw signupError;
+      }
+      navigate(
+        "/"
+      );
     } catch (error) {
-      setError('Failed to create account. Please try again.');
-    }
-    
-    setLoading(false);
+      setError(error.message || "Failed to create account. Please try again.");setLoading(false);
   };
 
   const handleGoogleSignIn = async () => {

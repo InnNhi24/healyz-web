@@ -45,10 +45,11 @@ export const AuthProvider = ({ children }) => {
 
         if (profileError) {
           console.error('Error creating user profile:', profileError);
+          throw profileError; // Throw the profile error to be caught by the calling component
         }
       }
 
-      return { data, error: null };
+      return { data, error: null }; // Return success if both auth and profile creation are successful
     } catch (error) {
       console.error('Sign up error:', error);
       return { data: null, error };
