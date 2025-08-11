@@ -23,7 +23,9 @@ export const AuthProvider = ({ children }) => {
         email,
         password,
         options: {
-          data: userData
+          data: {
+            display_name: userData.displayName || null
+          }
         }
       });
 

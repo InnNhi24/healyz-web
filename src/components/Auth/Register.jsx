@@ -19,7 +19,7 @@ const Register = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   
-  const { signup, signInWithGoogle } = useAuth();
+  const { signUp, signInWithGoogle } = useAuth();
   const navigate = useNavigate();
 
   const handleChange = (e) => {
@@ -43,7 +43,7 @@ const Register = () => {
     try {
       setError('');
       setLoading(true);
-      const { error: signupError } = await signup(formData.email, formData.password, formData.displayName);
+      const { error: signupError } = await signUp(formData.email, formData.password, formData.displayName);
       if (signupError) {
         throw signupError;
       }
@@ -51,7 +51,10 @@ const Register = () => {
         "/"
       );
     } catch (error) {
-      setError(error.message || "Failed to create account. Please try again.");setLoading(false);
+      setError(error.message || "Failed to create account. Please try again.");
+    }
+    
+    setLoading(false);
   };
 
   const handleGoogleSignIn = async () => {
@@ -225,4 +228,3 @@ const Register = () => {
 };
 
 export default Register;
-
