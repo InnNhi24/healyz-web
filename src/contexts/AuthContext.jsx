@@ -24,7 +24,7 @@ export const AuthProvider = ({ children }) => {
         password,
         options: {
           data: {
-            display_name: userData.displayName || null
+            display_name: userData.displayName || ''
           }
         }
       });
@@ -41,7 +41,7 @@ export const AuthProvider = ({ children }) => {
               email: data.user.email,
               plan: PLAN_TYPES.STARTER,
               created_at: new Date().toISOString(),
-              ...userData
+              display_name: userData.displayName || ''
             }
           ]);
 
