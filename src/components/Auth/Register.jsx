@@ -9,7 +9,8 @@ import { useAuth } from '../../contexts/AuthContext';
 
 const Register = () => {
   const [formData, setFormData] = useState({
-    displayName: '',
+    fullName: '',
+    username: '',
     email: '',
     password: '',
     confirmPassword: ''
@@ -43,12 +44,12 @@ const Register = () => {
     try {
       setError('');
       setLoading(true);
-      const { error: signupError } = await signUp(formData.email, formData.password, formData.displayName);
+      const { error: signupError } = await signUp(formData.email, formData.password, formData.fullName, formData.username);
       if (signupError) {
         throw signupError;
       }
       navigate(
-        "/"
+        '/'
       );
     } catch (error) {
       setError(error.message || "Failed to create account. Please try again.");
@@ -95,17 +96,34 @@ const Register = () => {
             
             <form onSubmit={handleSubmit} className="space-y-6">
               <div>
-                <Label htmlFor="displayName">Full Name</Label>
+                <Label htmlFor="fullName">Full Name</Label>
                 <div className="relative mt-1">
                   <Input
-                    id="displayName"
-                    name="displayName"
+                    id="fullName"
+                    name="fullName"
                     type="text"
                     required
-                    value={formData.displayName}
+                    value={formData.fullName}
                     onChange={handleChange}
                     className="pl-10"
                     placeholder="Enter your full name"
+                  />
+                  <User className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+                </div>
+              </div>
+              
+              <div>
+                <Label htmlFor="username">Username</Label>
+                <div className="relative mt-1">
+                  <Input
+                    id="username"
+                    name="username"
+                    type="text"
+                    required
+                    value={formData.username}
+                    onChange={handleChange}
+                    className="pl-10"
+                    placeholder="Choose a username"
                   />
                   <User className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
                 </div>
@@ -228,3 +246,5 @@ const Register = () => {
 };
 
 export default Register;
+
+
