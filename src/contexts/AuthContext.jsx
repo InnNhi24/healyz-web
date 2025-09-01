@@ -17,14 +17,15 @@ export const AuthProvider = ({ children }) => {
   const [loading, setLoading] = useState(true);
 
   // Sign up function
-  const signUp = async (email, password, userData = {}) => {
+  const signUp = async (email, password, fullName, username) => {
     try {
       const { data, error } = await supabase.auth.signUp({
         email,
         password,
         options: {
           data: {
-            display_name: userData.displayName || ''
+            full_name: fullName || '',
+            display_name: username || ''
           }
         }
       });
@@ -41,7 +42,8 @@ export const AuthProvider = ({ children }) => {
               email: data.user.email,
               plan: PLAN_TYPES.STARTER,
               created_at: new Date().toISOString(),
-              display_name: userData.displayName || ''
+              full_name: fullName || '',
+              display_name: username || ''
             }
           ]);
 
@@ -95,7 +97,7 @@ export const AuthProvider = ({ children }) => {
       const { data, error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
         options: {
-          redirectTo: `${window.location.origin}/`
+          redirectTo: window.location.origin
         }
       });
 

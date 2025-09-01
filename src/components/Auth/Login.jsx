@@ -16,7 +16,7 @@ const Login = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   
-  const { login, signInWithGoogle } = useAuth();
+  const { signIn, signInWithGoogle } = useAuth();
   const navigate = useNavigate();
 
   const handleChange = (e) => {
@@ -32,7 +32,10 @@ const Login = () => {
     try {
       setError('');
       setLoading(true);
-      await login(formData.email, formData.password);
+      const { error: signInError } = await signIn(formData.email, formData.password);
+      if (signInError) {
+        throw signInError;
+      }
       navigate('/');
     } catch (error) {
       setError('Failed to log in. Please check your credentials.');
@@ -45,13 +48,15 @@ const Login = () => {
     try {
       setError('');
       setLoading(true);
-      await signInWithGoogle();
-      navigate('/');
+      const { error: googleError } = await signInWithGoogle();
+      if (googleError) {
+        throw googleError;
+      }
+      // Note: For OAuth, the redirect will handle navigation
     } catch (error) {
       setError('Failed to sign in with Google.');
+      setLoading(false);
     }
-    
-    setLoading(false);
   };
 
   return (

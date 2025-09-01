@@ -37,7 +37,7 @@ const Contact = () => {
                   <Mail className="w-6 h-6 text-primary" />
                   <div>
                     <h3 className="text-xl font-semibold text-gray-900">Email Us</h3>
-                    <p className="text-gray-600">hello@healynx.com</p>
+                    <p className="text-gray-600">hello@healyz.com</p>
                   </div>
                 </div>
                 <div className="flex items-center space-x-4">
@@ -87,7 +87,7 @@ const Contact = () => {
                 </div>
                 <div>
                   <Label htmlFor="subject" className="text-lg">Subject</Label>
-                  <Input type="text" id="subject" placeholder="Inquiry about Healynx" className="mt-2 p-3 text-lg" />
+                  <Input type="text" id="subject" placeholder="Inquiry about Healyz" className="mt-2 p-3 text-lg" />
                 </div>
                 <div>
                   <Label htmlFor="message" className="text-lg">Your Message</Label>

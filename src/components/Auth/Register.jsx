@@ -62,13 +62,15 @@ const Register = () => {
     try {
       setError('');
       setLoading(true);
-      await signInWithGoogle();
-      navigate('/');
+      const { error: googleError } = await signInWithGoogle();
+      if (googleError) {
+        throw googleError;
+      }
+      // Note: For OAuth, the redirect will handle navigation
     } catch (error) {
       setError('Failed to sign in with Google.');
+      setLoading(false);
     }
-    
-    setLoading(false);
   };
 
   return (
