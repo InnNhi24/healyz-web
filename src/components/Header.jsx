@@ -34,7 +34,7 @@ const Header = () => {
         <div className="flex justify-between items-center h-16">
           {/* Logo */}
           <Link to="/" className="flex items-center space-x-2">
-            <img src="/logo-full.png" alt="Healyz Logo" className="h-8 w-auto" />
+            <img src="../assets/logo-full.png" alt="Healyz Logo" className="h-8 w-auto" />
           </Link>
 
           {/* Desktop Navigation */}
