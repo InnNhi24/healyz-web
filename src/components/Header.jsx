@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { Menu, X, Heart, User, LogOut } from 'lucide-react';
 import { Button } from './ui/button';
 import { useAuth } from '../contexts/AuthContext';
+import logoFull from '../assets/logo-full.png';
 
 const Header = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -34,7 +35,7 @@ const Header = () => {
         <div className="flex justify-between items-center h-16">
           {/* Logo */}
           <Link to="/" className="flex items-center space-x-2">
-            <img src="../assets/logo-full.png" alt="Healyz Logo" className="h-8 w-auto" />
+            <img src={logoFull} alt="Healyz Logo" className="h-8 w-auto" />
           </Link>
 
           {/* Desktop Navigation */}
