@@ -32,28 +32,7 @@ export const AuthProvider = ({ children }) => {
 
       if (error) throw error;
 
-      // Create user profile in database
-      if (data.user) {
-        const { error: profileError } = await supabase
-          .from(TABLES.USERS)
-          .insert([
-            {
-              id: data.user.id,
-              email: data.user.email,
-              plan: PLAN_TYPES.STARTER,
-              created_at: new Date().toISOString(),
-              full_name: fullName || '',
-              display_name: username || ''
-            }
-          ]);
-
-        if (profileError) {
-          console.error('Error creating user profile:', profileError);
-          throw profileError; // Throw the profile error to be caught by the calling component
-        }
-      }
-
-      return { data, error: null }; // Return success if both auth and profile creation are successful
+      return { data, error: null };
     } catch (error) {
       console.error('Sign up error:', error);
       return { data: null, error };

@@ -8,7 +8,7 @@ import logoFull from '../assets/logo-full.png';
 const Header = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
-  const { currentUser, userProfile, logout } = useAuth();
+  const { currentUser, userProfile, signOut } = useAuth();
 
   const navigation = [
     { name: 'Home', href: '/' },
@@ -22,7 +22,7 @@ const Header = () => {
 
   const handleLogout = async () => {
     try {
-      await logout();
+      await signOut();
       setIsUserMenuOpen(false);
     } catch (error) {
       console.error('Failed to log out:', error);
@@ -63,7 +63,7 @@ const Header = () => {
                     <User className="w-4 h-4 text-primary" />
                   </div>
                   <span className="text-sm font-medium">
-                    {userProfile?.displayName || currentUser.displayName || 'User'}
+                    {userProfile?.display_name || currentUser?.user_metadata?.display_name || currentUser?.user_metadata?.full_name || currentUser?.email?.split('@')[0] || 'User'}
                   </span>
                   {userProfile?.plan && (
                     <span className={`px-2 py-1 text-xs rounded-full ${
