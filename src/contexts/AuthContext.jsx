@@ -32,6 +32,13 @@ export const AuthProvider = ({ children }) => {
 
       if (error) throw error;
 
+      // If user is created successfully, update their profile in the users table
+      if (data.user && !data.user.email_confirmed_at) {
+        // For new signups, we'll handle profile creation in the auth state change listener
+        // This avoids the password_hash constraint issue
+        console.log('User signed up successfully, profile will be created on email confirmation');
+      }
+
       return { data, error: null };
     } catch (error) {
       console.error('Sign up error:', error);
@@ -197,7 +204,35 @@ export const AuthProvider = ({ children }) => {
           setCurrentUser(session.user);
           
           // Get user profile
-          const profile = await getUserProfile(session.user.id);
+          let profile = await getUserProfile(session.user.id);
+          
+          // If no profile exists, create one (for new signups)
+          if (!profile && session.user.user_metadata) {
+            try {
+              const { error: profileError } = await supabase
+                .from(TABLES.USERS)
+                .insert([
+                  {
+                    id: session.user.id,
+                    email: session.user.email,
+                    plan: PLAN_TYPES.STARTER,
+                    created_at: new Date().toISOString(),
+                    full_name: session.user.user_metadata.full_name || '',
+                    display_name: session.user.user_metadata.display_name || ''
+                  }
+                ]);
+
+              if (!profileError) {
+                // Get the newly created profile
+                profile = await getUserProfile(session.user.id);
+              } else {
+                console.error('Error creating user profile:', profileError);
+              }
+            } catch (error) {
+              console.error('Error creating user profile:', error);
+            }
+          }
+          
           setUserProfile(profile);
         } else {
           setCurrentUser(null);
